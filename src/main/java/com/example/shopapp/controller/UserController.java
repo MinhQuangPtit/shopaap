@@ -40,6 +40,7 @@ public class UserController {
                 return ResponseEntity.badRequest().body("Password does not match");
             }
             User user = userService.createUser(userDTO);
+            System.out.println("userrr + " + user);
             return ResponseEntity.ok(user);
         } catch(Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -52,6 +53,7 @@ public class UserController {
             @Valid @RequestBody UserLoginDTO userLoginDTO){
         try {
             String token = userService.login(userLoginDTO.getPhoneNumber(),userLoginDTO.getPassword());
+            System.out.println("Tokenn : " + token);
             return ResponseEntity.ok(token);
         }
         catch (Exception e){

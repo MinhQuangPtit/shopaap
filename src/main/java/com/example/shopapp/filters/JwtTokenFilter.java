@@ -33,10 +33,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                                      @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            // Những api không cần kiểm tra token (Kh cần đăng nhập)
-            if( isBypassToken(request) ) filterChain.doFilter(request,response);
-
-            // Những api cần kiểm tra token
+            if( isBypassToken(request) ) {
+                filterChain.doFilter(request,response);
+                return;
+            }
 
             final String authHeader = request.getHeader("Authorization");
             if(authHeader == null || !authHeader.startsWith("Bearer ")){
@@ -50,12 +50,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             if(phoneNumber != null
                     && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User userDetails = (User) userDetailsService.loadUserByUsername(phoneNumber);
-                if (jwtTokenUtil.validateToken(token, userDetails)) { // Check token
+                if (jwtTokenUtil.validateToken(token, userDetails)) {
                     UsernamePasswordAuthenticationToken authenticationToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    userDetails.getAuthorities() // quyền của user
+                                    userDetails.getAuthorities()
                             );
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
@@ -70,10 +70,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private boolean isBypassToken(@NonNull HttpServletRequest request){
         final List<Pair<String,String>> bypassTokens = Arrays.asList(
-                Pair.of("api/v1/products","GET"),
-                Pair.of("api/v1/categories","GET"),
-                Pair.of("api/v1/users/register","POST"),
-                Pair.of("api/v1/users/login","POST")
+                Pair.of(String.format("%s/products", "api/v1"), "GET"),
+                Pair.of(String.format("%s/categories", "api/v1"), "GET"),
+                Pair.of(String.format("%s/users/register", "api/v1"), "POST"),
+                Pair.of(String.format("%s/users/login", "api/v1"), "POST")
         );
         for( Pair<String,String> bypassToken: bypassTokens ){
             if(request.getServletPath().contains(bypassToken.getFirst()) &&

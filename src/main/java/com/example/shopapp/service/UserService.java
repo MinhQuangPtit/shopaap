@@ -47,12 +47,10 @@ public class UserService implements IUserService{
                 .build();
 
         user.setRole(role);
-        //Kiểm tra nếu có accountId, không yêu cầu password
-        if(userDTO.getFacebookAccountId() == 0 && userDTO.getGoogleAccountId() == 0){
-            String password = userDTO.getPassword();
-            String encodedPassword = passwordEncoder.encode(password);
-            user.setPassword(encodedPassword);
-        }
+
+        String password = userDTO.getPassword();
+        String encodedPassword = passwordEncoder.encode(password);
+        user.setPassword(encodedPassword);
         return userRepository.save(user);
     }
 
@@ -64,12 +62,9 @@ public class UserService implements IUserService{
         }
         User user = optionalUser.get();
 //        Xác thực với spring security
-        if(user.getFacebookAccountId()==0 && user.getGoogleAccountId() == 0){
-            if(!passwordEncoder.matches(password, user.getPassword())){
-                throw new BadCredentialsException("wrong phone number or password");
-            }
+        if(!passwordEncoder.matches(password, user.getPassword())){
+            throw new BadCredentialsException("wrong phone number or password");
         }
-
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 phoneNumber, password, user.getAuthorities()
         );
